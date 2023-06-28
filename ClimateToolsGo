@@ -1,0 +1,78 @@
+using System;
+using System.Collections.Generic;
+using System.Windows.Forms;
+
+public partial class BrowserForm : Form
+{
+    private WebBrowser webBrowser;
+    private List<string> history = new List<string>();
+    private int currentHistoryIndex = -1;
+
+    public BrowserForm()
+    {
+        InitializeComponent();
+        
+        webBrowser = new WebBrowser()
+        {
+            Dock = DockStyle.Fill,
+        };
+        webBrowser.Navigated += WebBrowser_Navigated;
+        Controls.Add(webBrowser);
+
+        // Navigation panel
+        var navigationPanel = new Panel()
+        {
+            Height = 30,
+            Dock = DockStyle.Top,
+        };
+        Controls.Add(navigationPanel);
+
+        // URL text box
+        var urlTextBox = new TextBox()
+        {
+            Dock = DockStyle.Fill,
+        };
+        navigationPanel.Controls.Add(urlTextBox);
+
+        // Go button
+        var goButton = new Button()
+        {
+            Text = "Go",
+            Dock = DockStyle.Right,
+        };
+        goButton.Click += (sender, e) =>
+        {
+            webBrowser.Navigate(urlTextBox.Text);
+        };
+        navigationPanel.Controls.Add(goButton);
+
+        // Back button
+        var backButton = new Button()
+        {
+            Text = "Back",
+            Dock = DockStyle.Left,
+        };
+        backButton.Click += (sender, e) =>
+        {
+            if (currentHistoryIndex > 0)
+            {
+                currentHistoryIndex--;
+                webBrowser.Navigate(history[currentHistoryIndex]);
+            }
+        };
+        navigationPanel.Controls.Add(backButton);
+    }
+
+    private void WebBrowser_Navigated(object sender, WebBrowserNavigatedEventArgs e)
+    {
+        // Clear forward history when new URL is visited
+        if (currentHistoryIndex < history.Count - 1)
+        {
+            history.RemoveRange(currentHistoryIndex + 1, history.Count - currentHistoryIndex - 1);
+        }
+
+        // Add URL to history
+        history.Add(e.Url.ToString());
+        currentHistoryIndex++;
+    }
+}
